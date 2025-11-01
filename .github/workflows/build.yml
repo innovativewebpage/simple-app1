@@ -11,10 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: client
+        working-directory: client # ✅ sets npm working directory
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Setup Node.js
@@ -22,16 +22,16 @@ jobs:
         with:
           node-version: 18
           cache: "npm"
-          cache-dependency-path: client/package-lock.json
+          cache-dependency-path: client/package-lock.json # ✅ still valid
 
       - name: Install dependencies
-        run: npm ci --prefix client # ✅ fixed
+        run: npm ci # ✅ no prefix needed now
 
       - name: Build the project
-        run: npm run build --prefix client # ✅ fixed
+        run: npm run build
 
       - name: Upload production build
         uses: actions/upload-artifact@v4
         with:
           name: react-build
-          path: client/build # ✅ fixed
+          path: client/build # ✅ correct build path
