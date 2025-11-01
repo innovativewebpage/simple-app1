@@ -1,46 +1,47 @@
-name: Build and Analyze with SonarCloud
+name: Build React App and Analyze with SonarCloud
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
-    branches:
-      - main
+    branches: [main]
+
+permissions:
+  contents: read
+  actions: read
+  security-events: write
 
 jobs:
   build:
-    name: Build and SonarCloud Scan
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: client
 
     steps:
-      # 1️⃣ Checkout repository
+      # 1️⃣ Checkout your repo
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # 2️⃣ Setup Node.js (with proper cache)
+      # 2️⃣ Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
           cache: npm
-          cache-dependency-path: client/package-lock.json
+          cache-dependency-path: "**/package-lock.json"
 
-      # 3️⃣ Install dependencies
+      # 3️⃣ Install dependencies in the client folder
       - name: Install dependencies
+        working-directory: client
         run: npm ci
 
-      # 4️⃣ Build React app
-      - name: Build React app
+      # 4️⃣ Build your React app
+      - name: Build React App
+        working-directory: client
         run: npm run build
 
-      # 5️⃣ Run SonarCloud Scan
-      - name: Run SonarCloud Scan
+      # 5️⃣ Run SonarCloud Analysis
+      - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@v5.0.0
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -49,5 +50,14 @@ jobs:
           args: >
             -Dsonar.host.url=https://sonarcloud.io
             -Dsonar.organization=innovativewebpage
-            -Dsonar.projectKey=innovativewebpage_MY-SIMPLE1
-            -Dsonar.projectName=MY-SIMPLE1
+            -Dsonar.projectKey=innovativewebpage_simple-app1
+            -Dsonar.projectName=simple-app1
+            -Dsonar.sources=client/src
+            -Dsonar.exclusions=**/node_modules/**,**/build/**,**/public/**
+
+      # 6️⃣ Upload your build output as an artifact
+      - name: Upload production build
+        uses: actions/upload-artifact@v4
+        with:
+          name: react-build
+          path: client/build
