@@ -1,35 +1,29 @@
-name: Build React App
+name: Build and Analyze with SonarCloud
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
   pull_request:
-    branches: [main]
+    branches:
+      - main
 
 jobs:
   build:
+    name: Build and SonarCloud Scan
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: client
 
     steps:
-      # 1️⃣ Checkout your repository (must come first)
+      # 1️⃣ Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # 2️⃣ Verify that the package-lock.json file actually exists
-      - name: Verify package-lock path
-        run: |
-          echo "Checking for client/package-lock.json..."
-          if [ -f client/package-lock.json ]; then
-            echo "✅ Found client/package-lock.json"
-          else
-            echo "❌ ERROR: client/package-lock.json not found"
-            ls -R
-            exit 1
-          fi
-
-      # 3️⃣ Setup Node.js with caching (now that the file is confirmed)
+      # 2️⃣ Setup Node.js (with proper cache)
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -37,19 +31,23 @@ jobs:
           cache: npm
           cache-dependency-path: client/package-lock.json
 
-      # 4️⃣ Install dependencies inside the client folder
+      # 3️⃣ Install dependencies
       - name: Install dependencies
-        working-directory: client
         run: npm ci
 
-      # 5️⃣ Build your React project
-      - name: Build the project
-        working-directory: client
+      # 4️⃣ Build React app
+      - name: Build React app
         run: npm run build
 
-      # 6️⃣ Upload the production build as an artifact
-      - name: Upload production build
-        uses: actions/upload-artifact@v4
+      # 5️⃣ Run SonarCloud Scan
+      - name: Run SonarCloud Scan
+        uses: SonarSource/sonarqube-scan-action@v5.0.0
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          name: react-build
-          path: client/build
+          args: >
+            -Dsonar.host.url=https://sonarcloud.io
+            -Dsonar.organization=innovativewebpage
+            -Dsonar.projectKey=innovativewebpage_MY-SIMPLE1
+            -Dsonar.projectName=MY-SIMPLE1
