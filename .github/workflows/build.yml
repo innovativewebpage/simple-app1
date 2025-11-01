@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: client # ✅ sets npm working directory
+        working-directory: client
 
     steps:
       - name: Checkout repository
@@ -22,10 +22,10 @@ jobs:
         with:
           node-version: 18
           cache: "npm"
-          cache-dependency-path: client/package-lock.json # ✅ still valid
+          cache-dependency-path: ./client/package-lock.json # ✅ fixed path
 
       - name: Install dependencies
-        run: npm ci # ✅ no prefix needed now
+        run: npm ci
 
       - name: Build the project
         run: npm run build
@@ -34,4 +34,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: react-build
-          path: client/build # ✅ correct build path
+          path: client/build
