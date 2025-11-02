@@ -3,52 +3,35 @@ name: 🚀 Deploy React App to AWS S3 + CloudFront
 on:
   push:
     branches:
-      - main # deploy only from main branch
+      - main
 
 jobs:
   deploy:
-    name: Deploy to AWS
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Install Dependencies
+      - name: Install dependencies
         run: |
           cd client
           npm install
 
-      - name: Build React App
+      - name: Build React app
         run: |
           cd client
           npm run build
 
-      - name: Upload to S3
-        uses: aws-actions/s3-sync@v2
-        with:
-          bucket: ${{ secrets.S3_BUCKET }}
-          region: ${{ secrets.AWS_REGION }}
-          source-dir: client/build
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      - name: Deploy to S3
+        run: |
+          aws s3 sync ./client/build s3://${{ secrets.S3_BUCKET }} --delete --region ${{ secrets.AWS_REGION }}
 
-      - name: Invalidate CloudFront Cache
-        uses: aws-actions/cloudfront-invalidate-cache@v2
-        with:
-          distribution-id: ${{ secrets.DISTRIBUTION_ID }}
-          paths: "/*"
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
-      - name: ✅ Deployment Complete
-        run: echo "🎉 React app deployed to CloudFront successfully!"
+      - name: Invalidate CloudFront cache
+        run: |
+          aws cloudfront create-invalidation --distribution-id ${{ secrets.DISTRIBUTION_ID }} --paths "/*" --region ${{ secrets.AWS_REGION }}
