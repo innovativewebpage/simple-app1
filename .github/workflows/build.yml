@@ -57,8 +57,8 @@ jobs:
           args: >
             -Dsonar.host.url=https://sonarcloud.io
             -Dsonar.organization=innovativewebpage
-            -Dsonar.projectKey=innovativewebpage_my-simple1
-            -Dsonar.projectName=my-simple1
+            -Dsonar.projectKey=innovativewebpage_simple-app1
+            -Dsonar.projectName=simple-app1
             -Dsonar.sources=client/src
             -Dsonar.exclusions=**/node_modules/**,**/build/**,**/public/**
 
